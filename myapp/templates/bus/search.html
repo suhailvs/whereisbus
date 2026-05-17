@@ -1,0 +1,246 @@
+<!-- templates/bus/search.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bus Search{% endblock %}
+
+{% block content %}
+
+<div class="bus-layout">
+
+    <!-- LEFT SIDE -->
+    <div class="search-panel">
+
+        <div class="header-row">
+            <h2>
+                <i class="fa-solid fa-bus"></i>
+                bus timings
+            </h2>
+
+            <button class="location-btn">
+                <i class="fa-solid fa-location-dot"></i>
+                location
+            </button>
+        </div>
+
+        <!-- SEARCH FORM -->
+        <form method="GET" class="search-form">
+
+            <div class="route-box">
+
+                <div class="field">
+                    <label>from</label>
+
+                    <select name="from_stop">
+                        <option>Select Stop</option>
+
+                        {% for stop in stops %}
+                        <option value="{{ stop.id }}">
+                            {{ stop.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="button" class="swap-btn">
+                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                </button>
+
+                <div class="field">
+                    <label>to</label>
+
+                    <select name="to_stop">
+                        <option>Select Stop</option>
+
+                        {% for stop in stops %}
+                        <option value="{{ stop.id }}">
+                            {{ stop.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="bottom-filters">
+
+                <div class="date-box">
+                    <i class="fa-regular fa-calendar"></i>
+                    <input type="date" name="date">
+                </div>
+
+                <button class="filter-btn" type="button">
+                    <i class="fa-solid fa-filter"></i>
+                    filter
+                </button>
+
+            </div>
+
+            <button class="search-btn">
+                search buses
+            </button>
+
+        </form>
+
+        <div class="result-count">
+            {{ buses|length }} buses found
+        </div>
+
+        <!-- BUS LIST -->
+        <div class="bus-list">
+
+            {% for bus in buses %}
+
+            <a href="{% url 'bus_detail' bus.id %}" class="bus-card">
+
+                <div class="top-row">
+
+                    <div class="time">
+                        {{ bus.departure_time }}
+                    </div>
+
+                    <div class="arrow">
+                        →
+                    </div>
+
+                    <div class="time">
+                        {{ bus.arrival_time }}
+                    </div>
+
+                    <div class="duration">
+                        {{ bus.duration }}
+                    </div>
+
+                </div>
+
+                <div class="middle-row">
+
+                    <div class="bus-code">
+                        {{ bus.bus_number }}
+                    </div>
+
+                    <div class="route">
+                        {{ bus.source }} →
+                        {{ bus.destination }}
+                    </div>
+
+                    <div class="status
+                        {% if bus.status == 'on time' %}
+                            green
+                        {% else %}
+                            orange
+                        {% endif %}
+                    ">
+                        {{ bus.status }}
+                    </div>
+
+                </div>
+
+                <div class="bottom-row">
+                    {{ bus.total_stops }} stops · {{ bus.bus_type }}
+                </div>
+
+            </a>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="detail-panel">
+
+        {% if selected_bus %}
+
+        <div class="detail-header">
+
+            <button class="back-btn">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+
+            <div>
+                <h3>{{ selected_bus.bus_number }} — {{ selected_bus.bus_type }}</h3>
+
+                <p>
+                    {{ selected_bus.source }}
+                    →
+                    {{ selected_bus.destination }}
+                </p>
+            </div>
+
+            <span class="status green">
+                {{ selected_bus.status }}
+            </span>
+
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="summary-box">
+
+            <div>
+                <h2>{{ selected_bus.departure_time }}</h2>
+                <p>departs</p>
+            </div>
+
+            <div class="journey-center">
+                <span>{{ selected_bus.duration }}</span>
+                <small>{{ selected_bus.total_stops }} stops</small>
+            </div>
+
+            <div>
+                <h2>{{ selected_bus.arrival_time }}</h2>
+                <p>arrives</p>
+            </div>
+
+        </div>
+
+        <!-- STOPS -->
+        <div class="stops-section">
+
+            {% for stop in selected_bus.busstop_set.all %}
+
+            <div class="stop-item
+                {% if stop.is_boarding %}
+                    active-stop
+                {% endif %}
+                {% if stop.is_destination %}
+                    destination-stop
+                {% endif %}
+            ">
+
+                <div class="timeline-dot"></div>
+
+                <div class="stop-content">
+
+                    <div>
+                        <h4>{{ stop.name }}</h4>
+
+                        {% if stop.is_boarding %}
+                        <small>your boarding stop</small>
+                        {% endif %}
+
+                        {% if stop.is_destination %}
+                        <small>your destination stop</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="stop-time">
+                        {{ stop.time }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

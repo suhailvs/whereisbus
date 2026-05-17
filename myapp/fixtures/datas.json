@@ -1,0 +1,279 @@
+[
+    {
+        "model": "myapp.stop",
+        "pk": 1,
+        "fields": {
+            "name": "Thiruvananthapuram"
+        }
+    },
+    {
+        "model": "myapp.stop",
+        "pk": 2,
+        "fields": {
+            "name": "Kazhakuttam"
+        }
+    },
+    {
+        "model": "myapp.stop",
+        "pk": 3,
+        "fields": {
+            "name": "Attingal"
+        }
+    },
+    {
+        "model": "myapp.stop",
+        "pk": 4,
+        "fields": {
+            "name": "Kollam"
+        }
+    },
+    {
+        "model": "myapp.stop",
+        "pk": 5,
+        "fields": {
+            "name": "Chengannur"
+        }
+    },
+    {
+        "model": "myapp.stop",
+        "pk": 6,
+        "fields": {
+            "name": "Ernakulam"
+        }
+    },
+    {
+        "model": "myapp.stop",
+        "pk": 7,
+        "fields": {
+            "name": "Thrissur"
+        }
+    },
+    {
+        "model": "myapp.bus",
+        "pk": 1,
+        "fields": {
+            "bus_number": "KL 07",
+            "source": "Thiruvananthapuram",
+            "destination": "Thrissur",
+            "departure_time": "06:15:00",
+            "arrival_time": "09:40:00",
+            "duration": "3h 25m",
+            "total_stops": 14,
+            "bus_type": "fast express",
+            "status": "on time"
+        }
+    },
+    {
+        "model": "myapp.bus",
+        "pk": 2,
+        "fields": {
+            "bus_number": "KL 12",
+            "source": "Thiruvananthapuram",
+            "destination": "Thrissur",
+            "departure_time": "07:30:00",
+            "arrival_time": "11:15:00",
+            "duration": "3h 45m",
+            "total_stops": 22,
+            "bus_type": "ordinary",
+            "status": "delay"
+        }
+    },
+    {
+        "model": "myapp.bus",
+        "pk": 3,
+        "fields": {
+            "bus_number": "KL 19",
+            "source": "Thiruvananthapuram",
+            "destination": "Thrissur",
+            "departure_time": "09:00:00",
+            "arrival_time": "12:30:00",
+            "duration": "3h 30m",
+            "total_stops": 18,
+            "bus_type": "super fast",
+            "status": "on time"
+        }
+    },
+
+
+
+    {
+        "model": "myapp.busstop",
+        "pk": 1,
+        "fields": {
+            "bus": 1,
+            "name": "Thiruvananthapuram",
+            "time": "06:15:00",
+            "is_boarding": false,
+            "is_destination": false,
+            "order": 1
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 2,
+        "fields": {
+            "bus": 1,
+            "name": "Kazhakuttam",
+            "time": "06:28:00",
+            "is_boarding": false,
+            "is_destination": false,
+            "order": 2
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 3,
+        "fields": {
+            "bus": 1,
+            "name": "Attingal",
+            "time": "06:55:00",
+            "is_boarding": false,
+            "is_destination": false,
+            "order": 3
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 4,
+        "fields": {
+            "bus": 1,
+            "name": "Kollam",
+            "time": "07:30:00",
+            "is_boarding": true,
+            "is_destination": false,
+            "order": 4
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 5,
+        "fields": {
+            "bus": 1,
+            "name": "Chengannur",
+            "time": "08:10:00",
+            "is_boarding": false,
+            "is_destination": false,
+            "order": 5
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 6,
+        "fields": {
+            "bus": 1,
+            "name": "Ernakulam",
+            "time": "09:15:00",
+            "is_boarding": false,
+            "is_destination": true,
+            "order": 6
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 7,
+        "fields": {
+            "bus": 1,
+            "name": "Thrissur",
+            "time": "09:40:00",
+            "is_boarding": false,
+            "is_destination": false,
+            "order": 7
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 8,
+        "fields": {
+            "bus": 2,
+            "name": "Thiruvananthapuram",
+            "time": "07:30:00",
+            "is_boarding": false,
+            "is_destination": false,
+            "order": 1
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 9,
+        "fields": {
+            "bus": 2,
+            "name": "Kollam",
+            "time": "08:25:00",
+            "is_boarding": true,
+            "is_destination": false,
+            "order": 2
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 10,
+        "fields": {
+            "bus": 2,
+            "name": "Ernakulam",
+            "time": "10:10:00",
+            "is_boarding": false,
+            "is_destination": true,
+            "order": 3
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 11,
+        "fields": {
+            "bus": 2,
+            "name": "Thrissur",
+            "time": "11:15:00",
+            "is_boarding": false,
+            "is_destination": false,
+            "order": 4
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 12,
+        "fields": {
+            "bus": 3,
+            "name": "Thiruvananthapuram",
+            "time": "09:00:00",
+            "is_boarding": false,
+            "is_destination": false,
+            "order": 1
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 13,
+        "fields": {
+            "bus": 3,
+            "name": "Kollam",
+            "time": "09:45:00",
+            "is_boarding": true,
+            "is_destination": false,
+            "order": 2
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 14,
+        "fields": {
+            "bus": 3,
+            "name": "Ernakulam",
+            "time": "11:20:00",
+            "is_boarding": false,
+            "is_destination": true,
+            "order": 3
+        }
+    },
+    {
+        "model": "myapp.busstop",
+        "pk": 15,
+        "fields": {
+            "bus": 3,
+            "name": "Thrissur",
+            "time": "12:30:00",
+            "is_boarding": false,
+            "is_destination": false,
+            "order": 4
+        }
+    }
+]

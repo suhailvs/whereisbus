@@ -101,7 +101,7 @@
         "pk": 1,
         "fields": {
             "bus": 1,
-            "name": "Thiruvananthapuram",
+            "stop": 1,
             "time": "06:15:00",
             "is_boarding": false,
             "is_destination": false,
@@ -113,7 +113,7 @@
         "pk": 2,
         "fields": {
             "bus": 1,
-            "name": "Kazhakuttam",
+            "stop": 2,
             "time": "06:28:00",
             "is_boarding": false,
             "is_destination": false,
@@ -125,7 +125,7 @@
         "pk": 3,
         "fields": {
             "bus": 1,
-            "name": "Attingal",
+            "stop": 3,
             "time": "06:55:00",
             "is_boarding": false,
             "is_destination": false,
@@ -137,7 +137,7 @@
         "pk": 4,
         "fields": {
             "bus": 1,
-            "name": "Kollam",
+            "stop": 4,
             "time": "07:30:00",
             "is_boarding": true,
             "is_destination": false,
@@ -149,7 +149,7 @@
         "pk": 5,
         "fields": {
             "bus": 1,
-            "name": "Chengannur",
+            "stop": 5,
             "time": "08:10:00",
             "is_boarding": false,
             "is_destination": false,
@@ -161,7 +161,7 @@
         "pk": 6,
         "fields": {
             "bus": 1,
-            "name": "Ernakulam",
+            "stop": 6,
             "time": "09:15:00",
             "is_boarding": false,
             "is_destination": true,
@@ -173,7 +173,7 @@
         "pk": 7,
         "fields": {
             "bus": 1,
-            "name": "Thrissur",
+            "stop": 7,
             "time": "09:40:00",
             "is_boarding": false,
             "is_destination": false,
@@ -185,7 +185,7 @@
         "pk": 8,
         "fields": {
             "bus": 2,
-            "name": "Thiruvananthapuram",
+            "stop": 1,
             "time": "07:30:00",
             "is_boarding": false,
             "is_destination": false,
@@ -197,7 +197,7 @@
         "pk": 9,
         "fields": {
             "bus": 2,
-            "name": "Kollam",
+            "stop": 4,
             "time": "08:25:00",
             "is_boarding": true,
             "is_destination": false,
@@ -209,7 +209,7 @@
         "pk": 10,
         "fields": {
             "bus": 2,
-            "name": "Ernakulam",
+            "stop": 6,
             "time": "10:10:00",
             "is_boarding": false,
             "is_destination": true,
@@ -221,7 +221,7 @@
         "pk": 11,
         "fields": {
             "bus": 2,
-            "name": "Thrissur",
+            "stop": 7,
             "time": "11:15:00",
             "is_boarding": false,
             "is_destination": false,
@@ -233,7 +233,7 @@
         "pk": 12,
         "fields": {
             "bus": 3,
-            "name": "Thiruvananthapuram",
+            "stop": 1,
             "time": "09:00:00",
             "is_boarding": false,
             "is_destination": false,
@@ -245,7 +245,7 @@
         "pk": 13,
         "fields": {
             "bus": 3,
-            "name": "Kollam",
+            "stop": 4,
             "time": "09:45:00",
             "is_boarding": true,
             "is_destination": false,
@@ -257,7 +257,7 @@
         "pk": 14,
         "fields": {
             "bus": 3,
-            "name": "Ernakulam",
+            "stop": 6,
             "time": "11:20:00",
             "is_boarding": false,
             "is_destination": true,
@@ -269,7 +269,7 @@
         "pk": 15,
         "fields": {
             "bus": 3,
-            "name": "Thrissur",
+            "stop": 7,
             "time": "12:30:00",
             "is_boarding": false,
             "is_destination": false,

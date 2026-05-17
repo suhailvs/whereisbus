@@ -525,13 +525,18 @@ function renderList() {
     ${i < route.length-1 ? '<div class="route-connector"></div>' : ''}
   `).join('');
 
+  function updateRouteField(e) {
+    const i = parseInt(e.target.dataset.index);
+    const f = e.target.dataset.field;
+    route[i][f] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    syncInput();
+  }
+
   list.querySelectorAll('[data-field]').forEach(el => {
-    el.addEventListener('change', e => {
-      const i = parseInt(e.target.dataset.index);
-      const f = e.target.dataset.field;
-      route[i][f] = e.target.type==='checkbox' ? e.target.checked : e.target.value;
-      syncInput();
-    });
+    el.addEventListener('change', updateRouteField);
+    if (el.type !== 'checkbox') {
+      el.addEventListener('input', updateRouteField);
+    }
   });
   list.querySelectorAll('[data-remove]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -552,6 +557,14 @@ function initSortable() {
       route.splice(e.newIndex, 0, route.splice(e.oldIndex, 1)[0]);
       renderRoute();
     },
+  });
+}
+
+function syncRouteFromInputs() {
+  document.querySelectorAll('#route-list [data-field]').forEach(el => {
+    const i = parseInt(el.dataset.index);
+    const f = el.dataset.field;
+    route[i][f] = el.type === 'checkbox' ? el.checked : el.value;
   });
 }
 
@@ -721,6 +734,7 @@ document.getElementById('modal-save-btn').addEventListener('click', async () => 
 
 // ─── Form guard ──────────────────────────────────────
 document.getElementById('bus-form').addEventListener('submit', e => {
+  syncRouteFromInputs();
   syncInput();
   if (route.length < 2) {
     e.preventDefault();

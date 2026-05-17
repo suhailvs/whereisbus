@@ -13,6 +13,20 @@ from .models import Bus, BusStop, Stop
 #  Bus creation
 # ──────────────────────────────────────────────
 
+def _stops_for_json():
+    stops = Stop.objects.order_by("name").values(
+        "id", "name", "district", "landmark", "latitude", "longitude"
+    )
+    return [
+        {
+            **stop,
+            "latitude": float(stop["latitude"]) if stop["latitude"] is not None else None,
+            "longitude": float(stop["longitude"]) if stop["longitude"] is not None else None,
+        }
+        for stop in stops
+    ]
+
+
 def bus_create(request):
     """
     GET  – render the bus creation form.
@@ -29,11 +43,8 @@ def bus_create(request):
         return _handle_bus_create(request)
 
     # Provide existing stops for the initial picker
-    stops = Stop.objects.order_by("name").values(
-        "id", "name", "district", "landmark", "latitude", "longitude"
-    )
     context = {
-        "stops_json": json.dumps(list(stops)),
+        "stops_json": json.dumps(_stops_for_json()),
         "bus_types": _BUS_TYPES,
     }
     return render(request, "bus/bus_form.html", context)
@@ -63,11 +74,8 @@ def _handle_bus_create(request):
     if errors:
         for err in errors:
             messages.error(request, err)
-        stops = Stop.objects.order_by("name").values(
-            "id", "name", "district", "landmark", "latitude", "longitude"
-        )
         return render(request, "bus/bus_form.html", {
-            "stops_json": json.dumps(list(stops)),
+            "stops_json": json.dumps(_stops_for_json()),
             "bus_types": _BUS_TYPES,
             "form_data": {
                 "bus_number": bus_number,

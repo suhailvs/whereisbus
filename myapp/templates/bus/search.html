@@ -41,9 +41,6 @@
   .swap-btn { width: 42px; background: none; border: none; cursor: pointer; color: var(--ink-3); font-size: 14px; padding: 0; transition: color .15s; }
   .swap-btn:hover { color: var(--ink); }
 
-  .date-wrap { background: var(--cream); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-3); }
-  .date-wrap input[type="date"] { font-family: var(--mono); font-size: 13px; color: var(--ink); background: none; border: none; outline: none; flex: 1; }
-
   .btn-search { font-family: var(--mono); font-size: 14px; background: var(--ink); color: var(--cream) !important; border: none; border-radius: 12px; padding: 13px 28px; letter-spacing: .04em; transition: background .15s; }
   .btn-search:hover { background: var(--ink-2); }
   .btn-filter { font-family: var(--mono); font-size: 13px; background: var(--cream); color: var(--ink-2); border: 1px solid var(--rule); border-radius: 12px; padding: 13px 18px; transition: border-color .15s; }
@@ -107,22 +104,16 @@
             {% endfor %}
           </select>
         </div>
-      </div>
-
-      <div class="d-flex gap-2 flex-wrap">
-        <div class="date-wrap flex-fill">
-          <i class="fa-regular fa-calendar"></i>
-          <input type="date" name="date" id="id_date" value="{{ request.GET.date }}">
+        <div class="swap-divider">
+        <button type="submit" class="m-4 btn-search"><i class="fa-solid fa-magnifying-glass me-1"></i></button>
         </div>
-        <button type="button" class="btn-filter"><i class="fa-solid fa-sliders me-1"></i> filter</button>
-        <button type="submit" class="btn-search">search buses</button>
       </div>
 
     </form>
   </div>
 
   <!-- RESULTS META -->
-  {% if selected_from_stop or selected_to_stop or request.GET.date %}
+  {% if selected_from_stop or selected_to_stop %}
   <div class="d-flex justify-content-between align-items-center mb-3">
     <span class="results-meta">results</span>
     <span class="results-meta">{{ buses|length }} found</span>
@@ -158,11 +149,11 @@
       </a>
       {% endfor %}
 
-    {% elif selected_from_stop or selected_to_stop or request.GET.date %}
+    {% elif selected_from_stop or selected_to_stop %}
       <div class="empty-state">
         <i class="fa-regular fa-face-meh"></i>
         <p class="mb-1">No buses found for this route.</p>
-        <small>Try different stops or a different date.</small>
+        <small>Try different stops.</small>
       </div>
     {% else %}
       <div class="empty-state">

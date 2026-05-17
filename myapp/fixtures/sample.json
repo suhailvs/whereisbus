@@ -15,4 +15,288 @@
         "groups": [],
         "user_permissions": []
     }
-}]
+},{
+    "model": "myapp.stop",
+    "pk": 1,
+    "fields": {
+        "name": "Thenidukku",
+        "district": "palakkad",
+        "landmark": "Unniappam Thenidukku",
+        "latitude": "10.593205",
+        "longitude": "76.461153"
+    }
+},
+{
+    "model": "myapp.stop",
+    "pk": 2,
+    "fields": {
+        "name": "Vadakkencherry",
+        "district": "palakkad",
+        "landmark": "Near Kadala shop",
+        "latitude": "10.590674",
+        "longitude": "76.483276"
+    }
+},
+{
+    "model": "myapp.stop",
+    "pk": 3,
+    "fields": {
+        "name": "Kannambra",
+        "district": "palakkad",
+        "landmark": "Near auditorium",
+        "latitude": "10.615140",
+        "longitude": "76.453471"
+    }
+},
+{
+    "model": "myapp.stop",
+    "pk": 6,
+    "fields": {
+        "name": "Nelliyampadam",
+        "district": "palakkad",
+        "landmark": "Near store",
+        "latitude": "10.603793",
+        "longitude": "76.464543"
+    }
+},
+{
+    "model": "myapp.stop",
+    "pk": 7,
+    "fields": {
+        "name": "Pulimkoottam",
+        "district": "palakkad",
+        "landmark": "bakery",
+        "latitude": "10.616237",
+        "longitude": "76.472225"
+    }
+},
+{
+    "model": "myapp.stop",
+    "pk": 8,
+    "fields": {
+        "name": "Alathur",
+        "district": "palakkad",
+        "landmark": "Swathi junction",
+        "latitude": "10.648092",
+        "longitude": "76.542435"
+    }
+},
+{
+    "model": "myapp.bus",
+    "pk": 1,
+    "fields": {
+        "bus_number": "Anugraha",
+        "bus_type": "Ordinary",
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.bus",
+    "pk": 2,
+    "fields": {
+        "bus_number": "Darsha",
+        "bus_type": "Ordinary",
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.bus",
+    "pk": 3,
+    "fields": {
+        "bus_number": "Anugraha",
+        "bus_type": "Ordinary",
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.bus",
+    "pk": 4,
+    "fields": {
+        "bus_number": "Darsha",
+        "bus_type": "Ordinary",
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 1,
+    "fields": {
+        "bus": 1,
+        "stop": 1,
+        "time": "00:00:00",
+        "is_boarding": false,
+        "is_destination": false,
+        "order": 0,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 2,
+    "fields": {
+        "bus": 1,
+        "stop": 2,
+        "time": "00:00:00",
+        "is_boarding": false,
+        "is_destination": false,
+        "order": 1,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 3,
+    "fields": {
+        "bus": 2,
+        "stop": 2,
+        "time": "12:10:00",
+        "is_boarding": false,
+        "is_destination": false,
+        "order": 0,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 4,
+    "fields": {
+        "bus": 2,
+        "stop": 1,
+        "time": "12:20:00",
+        "is_boarding": false,
+        "is_destination": false,
+        "order": 1,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 5,
+    "fields": {
+        "bus": 2,
+        "stop": 6,
+        "time": "12:40:00",
+        "is_boarding": false,
+        "is_destination": false,
+        "order": 2,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 6,
+    "fields": {
+        "bus": 2,
+        "stop": 7,
+        "time": "13:00:00",
+        "is_boarding": false,
+        "is_destination": false,
+        "order": 3,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 7,
+    "fields": {
+        "bus": 3,
+        "stop": 2,
+        "time": "18:00:00",
+        "is_boarding": true,
+        "is_destination": false,
+        "order": 0,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 8,
+    "fields": {
+        "bus": 3,
+        "stop": 1,
+        "time": "18:20:00",
+        "is_boarding": false,
+        "is_destination": false,
+        "order": 1,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 9,
+    "fields": {
+        "bus": 3,
+        "stop": 3,
+        "time": "19:00:00",
+        "is_boarding": false,
+        "is_destination": true,
+        "order": 2,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 10,
+    "fields": {
+        "bus": 4,
+        "stop": 8,
+        "time": "11:00:00",
+        "is_boarding": true,
+        "is_destination": false,
+        "order": 0,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 11,
+    "fields": {
+        "bus": 4,
+        "stop": 7,
+        "time": "11:20:00",
+        "is_boarding": false,
+        "is_destination": false,
+        "order": 1,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 12,
+    "fields": {
+        "bus": 4,
+        "stop": 6,
+        "time": "11:34:00",
+        "is_boarding": false,
+        "is_destination": false,
+        "order": 2,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 13,
+    "fields": {
+        "bus": 4,
+        "stop": 1,
+        "time": "11:40:00",
+        "is_boarding": false,
+        "is_destination": false,
+        "order": 3,
+        "is_active": true
+    }
+},
+{
+    "model": "myapp.busstop",
+    "pk": 14,
+    "fields": {
+        "bus": 4,
+        "stop": 2,
+        "time": "11:45:00",
+        "is_boarding": false,
+        "is_destination": true,
+        "order": 4,
+        "is_active": true
+    }
+}
+]

@@ -41,7 +41,9 @@ def _annotate_buses(buses):
 def bus_search(request):
     from_stop_id = _parse_stop_id(request.GET.get('from_stop'))
     to_stop_id   = _parse_stop_id(request.GET.get('to_stop'))
-
+    stops= _active_stops_qs()
+    if from_stop_id==None and to_stop_id==None:
+        return render(request, 'bus/search.html', {'buses': [],'stops': stops})
     buses = Bus.objects.prefetch_related(_bus_stops_prefetch())
 
     if from_stop_id:
@@ -64,28 +66,8 @@ def bus_search(request):
 
     # Evaluate to list and attach first_stop / last_stop / stop_count
     bus_list = _annotate_buses(buses)
-
-    # Resolve selected bus from ?bus= param
-    selected_bus = None
-    bus_id = _parse_stop_id(request.GET.get('bus'))
-    if bus_id:
-        fetched = {b.id: b for b in bus_list}
-        if bus_id in fetched:
-            selected_bus = fetched[bus_id]
-        else:
-            raw = get_object_or_404(
-                Bus.objects.prefetch_related(_bus_stops_prefetch()), id=bus_id
-            )
-            _annotate_buses([raw])   # attaches attributes in-place
-            selected_bus = raw
-
-    context = {
-        'buses': bus_list,
-        'stops': _active_stops_qs(),
-        'selected_bus': selected_bus,
-        'selected_from_stop': from_stop_id,
-        'selected_to_stop': to_stop_id,
-    }
+    context = {'buses': bus_list,'stops': stops, 'selected_from_stop': from_stop_id,
+        'selected_to_stop': to_stop_id,}
     return render(request, 'bus/search.html', context)
 
 

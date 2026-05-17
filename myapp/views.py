@@ -1,4 +1,3 @@
-# views.py
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, render
 from .models import Bus, BusStop, Stop
@@ -22,9 +21,26 @@ def _parse_stop_id(raw):
         return None
 
 
+def _annotate_buses(buses):
+    """
+    Evaluate the queryset to a list and attach first_stop, last_stop,
+    and stop_count as plain attributes so templates never call |first or
+    |last on a QuerySet (which raises ValueError: Negative indexing is
+    not supported).
+    """
+    bus_list = list(buses)
+    for bus in bus_list:
+        # bus_stops is already prefetched and ordered by `order`
+        stops = list(bus.bus_stops.all())
+        bus.first_stop = stops[0] if stops else None
+        bus.last_stop  = stops[-1] if stops else None
+        bus.stop_count = len(stops)
+    return bus_list
+
+
 def bus_search(request):
     from_stop_id = _parse_stop_id(request.GET.get('from_stop'))
-    to_stop_id = _parse_stop_id(request.GET.get('to_stop'))
+    to_stop_id   = _parse_stop_id(request.GET.get('to_stop'))
 
     buses = Bus.objects.prefetch_related(_bus_stops_prefetch())
 
@@ -41,23 +57,30 @@ def bus_search(request):
         for bus in buses:
             order_by_stop = {bs.stop_id: bs.order for bs in bus.bus_stops.all()}
             from_order = order_by_stop.get(from_stop_id)
-            to_order = order_by_stop.get(to_stop_id)
+            to_order   = order_by_stop.get(to_stop_id)
             if from_order is not None and to_order is not None and from_order < to_order:
                 valid_ids.append(bus.id)
         buses = Bus.objects.filter(id__in=valid_ids).prefetch_related(_bus_stops_prefetch())
 
-    # Reuse already-fetched bus if possible, else fetch by id
+    # Evaluate to list and attach first_stop / last_stop / stop_count
+    bus_list = _annotate_buses(buses)
+
+    # Resolve selected bus from ?bus= param
     selected_bus = None
     bus_id = _parse_stop_id(request.GET.get('bus'))
     if bus_id:
-        # Try to find in already-evaluated queryset to avoid extra query
-        fetched = {b.id: b for b in buses} if buses._result_cache else {}
-        selected_bus = fetched.get(bus_id) or get_object_or_404(
-            Bus.objects.prefetch_related(_bus_stops_prefetch()), id=bus_id
-        )
+        fetched = {b.id: b for b in bus_list}
+        if bus_id in fetched:
+            selected_bus = fetched[bus_id]
+        else:
+            raw = get_object_or_404(
+                Bus.objects.prefetch_related(_bus_stops_prefetch()), id=bus_id
+            )
+            _annotate_buses([raw])   # attaches attributes in-place
+            selected_bus = raw
 
     context = {
-        'buses': buses,
+        'buses': bus_list,
         'stops': _active_stops_qs(),
         'selected_bus': selected_bus,
         'selected_from_stop': from_stop_id,
@@ -70,14 +93,19 @@ def bus_detail(request, pk):
     selected_bus = get_object_or_404(
         Bus.objects.prefetch_related(_bus_stops_prefetch()), id=pk
     )
-    # Only fetch the full bus list if the template sidebar needs it
-    buses = Bus.objects.prefetch_related(_bus_stops_prefetch())
+    # Attach first_stop / last_stop / stop_count to selected bus
+    _annotate_buses([selected_bus])
+
+    # Sidebar list — annotated so bus cards render correctly
+    bus_list = _annotate_buses(
+        Bus.objects.prefetch_related(_bus_stops_prefetch())
+    )
 
     context = {
-        'buses': buses,
+        'buses': bus_list,
         'stops': _active_stops_qs(),
         'selected_bus': selected_bus,
         'selected_from_stop': _parse_stop_id(request.GET.get('from_stop')),
-        'selected_to_stop': _parse_stop_id(request.GET.get('to_stop')),
+        'selected_to_stop':   _parse_stop_id(request.GET.get('to_stop')),
     }
-    return render(request, 'bus/search.html', context)
+    return render(request, 'bus/detail.html', context)

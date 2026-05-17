@@ -1,4 +1,3 @@
-<!-- templates/bus/search.html -->
 {% extends 'base.html' %}
 {% load static %}
 
@@ -6,241 +5,194 @@
 
 {% block content %}
 
-<div class="bus-layout">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- LEFT SIDE -->
-    <div class="search-panel">
+<style>
+  :root {
+    --cream:    #f5f3ee;
+    --ink:      #1a1a18;
+    --ink-2:    #3a3a36;
+    --ink-3:    #7a7a72;
+    --rule:     #ddddd5;
+    --green-bg: #d4e8c2;
+    --green-tx: #2d5a16;
+    --amber-bg: #fce5b0;
+    --amber-tx: #7a4800;
+    --blue-bg:  #d0e4f7;
+    --blue-tx:  #0d3a6e;
+    --mono:     'DM Mono', monospace;
+    --serif:    'Fraunces', Georgia, serif;
+  }
+  body { font-family: var(--mono); background: var(--cream); color: var(--ink); }
 
-        <div class="header-row">
-            <h2>
-                <i class="fa-solid fa-bus"></i>
-                bus timings
-            </h2>
+  /* navbar */
+  .bs-navbar { background: #fff; border-bottom: 1px solid var(--rule); }
+  .bs-navbar .navbar-brand { font-family: var(--serif); font-size: 22px; font-weight: 300; color: var(--ink); }
+  .bs-navbar .navbar-brand span { font-style: italic; }
 
-            <button class="location-btn">
-                <i class="fa-solid fa-location-dot"></i>
-                location
-            </button>
-        </div>
+  /* search card */
+  .search-card { background: #fff; border: 1px solid var(--rule); border-radius: 18px; padding: 28px; }
+  .section-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
 
-        <!-- SEARCH FORM -->
-        <form method="GET" class="search-form">
+  .stops-wrapper { background: var(--cream); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+  .stop-half { padding: 14px 16px; }
+  .stop-half label { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; display: block; }
+  .stop-half select { font-family: var(--mono); font-size: 14px; color: var(--ink); background: none; border: none; outline: none; width: 100%; cursor: pointer; }
 
-            <div class="route-box">
+  .swap-divider { border-left: 1px solid var(--rule); display: flex; align-items: center; }
+  .swap-btn { width: 42px; background: none; border: none; cursor: pointer; color: var(--ink-3); font-size: 14px; padding: 0; transition: color .15s; }
+  .swap-btn:hover { color: var(--ink); }
 
-                <div class="field">
-                    <label>from</label>
+  .date-wrap { background: var(--cream); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-3); }
+  .date-wrap input[type="date"] { font-family: var(--mono); font-size: 13px; color: var(--ink); background: none; border: none; outline: none; flex: 1; }
 
-                    <select name="from_stop">
-                        <option>Select Stop</option>
+  .btn-search { font-family: var(--mono); font-size: 14px; background: var(--ink); color: var(--cream) !important; border: none; border-radius: 12px; padding: 13px 28px; letter-spacing: .04em; transition: background .15s; }
+  .btn-search:hover { background: var(--ink-2); }
+  .btn-filter { font-family: var(--mono); font-size: 13px; background: var(--cream); color: var(--ink-2); border: 1px solid var(--rule); border-radius: 12px; padding: 13px 18px; transition: border-color .15s; }
+  .btn-filter:hover { border-color: var(--ink-3); }
 
-                        {% for stop in stops %}
-                        <option value="{{ stop.id }}" {% if selected_from_stop == stop.id|stringformat:"s" %}selected{% endif %}>
-                            {{ stop.name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
+  /* results */
+  .results-meta { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
 
-                <button type="button" class="swap-btn">
-                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                </button>
+  .bus-card { display: block; text-decoration: none; color: inherit; background: #fff; border: 1px solid var(--rule); border-radius: 16px; padding: 18px 20px; transition: border-color .15s, transform .12s; }
+  .bus-card:hover { border-color: var(--ink-2); transform: translateY(-2px); color: inherit; }
 
-                <div class="field">
-                    <label>to</label>
+  .t-big { font-family: var(--serif); font-size: 28px; font-weight: 600; letter-spacing: -.5px; color: var(--ink); }
+  .t-sep { flex: 1; height: 1px; background: var(--rule); position: relative; margin: 0 12px; }
+  .t-sep::after { content: '→'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: #fff; padding: 0 6px; font-size: 13px; color: var(--ink-3); }
+  .t-stops { font-size: 11px; color: var(--ink-3); letter-spacing: .06em; white-space: nowrap; }
 
-                    <select name="to_stop">
-                        <option>Select Stop</option>
+  .bus-badge { font-size: 11px; font-weight: 500; background: var(--blue-bg); color: var(--blue-tx); padding: 5px 10px; border-radius: 6px; letter-spacing: .04em; white-space: nowrap; }
+  .route-label { font-size: 12px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 
-                        {% for stop in stops %}
-                        <option value="{{ stop.id }}" {% if selected_to_stop == stop.id|stringformat:"s" %}selected{% endif %}>
-                            {{ stop.name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
+  .status-badge { font-size: 11px; padding: 5px 11px; border-radius: 6px; white-space: nowrap; }
+  .status-badge.active   { background: var(--green-bg); color: var(--green-tx); }
+  .status-badge.inactive { background: var(--amber-bg); color: var(--amber-tx); }
 
-            </div>
+  .card-foot { font-size: 11px; color: var(--ink-3); letter-spacing: .04em; }
 
-            <div class="bottom-filters">
+  .empty-state { text-align: center; padding: 52px 0; color: var(--ink-3); }
+  .empty-state i { font-size: 40px; display: block; margin-bottom: 14px; }
+</style>
 
-                <div class="date-box">
-                    <i class="fa-regular fa-calendar"></i>
-                    <input type="date" name="date">
-                </div>
+<!-- NAVBAR -->
+<nav class="navbar bs-navbar px-3 px-md-4">
+  <a class="navbar-brand" href="{% url 'bus_search' %}">bus <span>timings</span></a>
+  <button class="btn btn-sm btn-outline-secondary rounded-pill" style="font-family:var(--mono);font-size:12px;">
+    <i class="fa-solid fa-location-dot me-1"></i> location
+  </button>
+</nav>
 
-                <button class="filter-btn" type="button">
-                    <i class="fa-solid fa-filter"></i>
-                    filter
-                </button>
+<!-- MAIN -->
+<div class="container py-4" style="max-width:860px;">
 
-            </div>
+  <!-- SEARCH CARD -->
+  <div class="search-card mb-4">
+    <p class="section-label">find your bus</p>
+    <form method="GET" id="search-form">
 
-            <button class="search-btn">
-                search buses
-            </button>
-
-        </form>
-
-        <div class="result-count">
-            {{ buses|length }} buses found
-        </div>
-
-        <!-- BUS LIST -->
-        <div class="bus-list">
-
-            {% for bus in buses %}
-
-            <a href="{% url 'bus_detail' bus.id %}?from_stop={{ selected_from_stop|default:'' }}&to_stop={{ selected_to_stop|default:'' }}" class="bus-card">
-
-                <div class="top-row">
-
-                    <div class="time">
-                        {{ bus.departure_time }}
-                    </div>
-
-                    <div class="arrow">
-                        →
-                    </div>
-
-                    <div class="time">
-                        {{ bus.arrival_time }}
-                    </div>
-
-                    <div class="duration">
-                        {{ bus.duration }}
-                    </div>
-
-                </div>
-
-                <div class="middle-row">
-
-                    <div class="bus-code">
-                        {{ bus.bus_number }}
-                    </div>
-
-                    <div class="route">
-                        {{ bus.source }} →
-                        {{ bus.destination }}
-                    </div>
-
-                    <div class="status
-                        {% if bus.status == 'on time' %}
-                            green
-                        {% else %}
-                            orange
-                        {% endif %}
-                    ">
-                        {{ bus.status }}
-                    </div>
-
-                </div>
-
-                <div class="bottom-row">
-                    {{ bus.total_stops }} stops · {{ bus.bus_type }}
-                </div>
-
-            </a>
-
+      <div class="stops-wrapper d-flex mb-3">
+        <div class="stop-half flex-fill">
+          <label for="id_from">from</label>
+          <select name="from_stop" id="id_from">
+            <option value="">select stop</option>
+            {% for stop in stops %}
+            <option value="{{ stop.id }}" {% if selected_from_stop == stop.id %}selected{% endif %}>{{ stop.name }}</option>
             {% endfor %}
-
+          </select>
         </div>
-
-    </div>
-
-    <!-- RIGHT SIDE -->
-    <div class="detail-panel">
-
-        {% if selected_bus %}
-
-        <div class="detail-header">
-
-            <button class="back-btn">
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
-
-            <div>
-                <h3>{{ selected_bus.bus_number }} — {{ selected_bus.bus_type }}</h3>
-
-                <p>
-                    {{ selected_bus.source }}
-                    →
-                    {{ selected_bus.destination }}
-                </p>
-            </div>
-
-            <span class="status green">
-                {{ selected_bus.status }}
-            </span>
-
+        <div class="swap-divider">
+          <button type="button" class="swap-btn" id="swap-btn" aria-label="Swap stops">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+          </button>
         </div>
-
-        <!-- SUMMARY -->
-        <div class="summary-box">
-
-            <div>
-                <h2>{{ selected_bus.departure_time }}</h2>
-                <p>departs</p>
-            </div>
-
-            <div class="journey-center">
-                <span>{{ selected_bus.duration }}</span>
-                <small>{{ selected_bus.total_stops }} stops</small>
-            </div>
-
-            <div>
-                <h2>{{ selected_bus.arrival_time }}</h2>
-                <p>arrives</p>
-            </div>
-
-        </div>
-
-        <!-- STOPS -->
-        <div class="stops-section">
-
-            {% for stop in selected_bus.busstop_set.all %}
-
-            <div class="stop-item
-                {% if stop.is_boarding %}
-                    active-stop
-                {% endif %}
-                {% if stop.is_destination %}
-                    destination-stop
-                {% endif %}
-            ">
-
-                <div class="timeline-dot"></div>
-
-                <div class="stop-content">
-
-                    <div>
-                        <h4>{{ stop.stop.name }}</h4>
-
-                        {% if stop.is_boarding %}
-                        <small>your boarding stop</small>
-                        {% endif %}
-
-                        {% if stop.is_destination %}
-                        <small>your destination stop</small>
-                        {% endif %}
-                    </div>
-
-                    <div class="stop-time">
-                        {{ stop.time }}
-                    </div>
-
-                </div>
-
-            </div>
-
+        <div class="stop-half flex-fill">
+          <label for="id_to">to</label>
+          <select name="to_stop" id="id_to">
+            <option value="">select stop</option>
+            {% for stop in stops %}
+            <option value="{{ stop.id }}" {% if selected_to_stop == stop.id %}selected{% endif %}>{{ stop.name }}</option>
             {% endfor %}
+          </select>
+        </div>
+      </div>
 
+      <div class="d-flex gap-2 flex-wrap">
+        <div class="date-wrap flex-fill">
+          <i class="fa-regular fa-calendar"></i>
+          <input type="date" name="date" id="id_date" value="{{ request.GET.date }}">
+        </div>
+        <button type="button" class="btn-filter"><i class="fa-solid fa-sliders me-1"></i> filter</button>
+        <button type="submit" class="btn-search">search buses</button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- RESULTS META -->
+  {% if selected_from_stop or selected_to_stop or request.GET.date %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="results-meta">results</span>
+    <span class="results-meta">{{ buses|length }} found</span>
+  </div>
+  {% endif %}
+
+  <!-- BUS LIST -->
+  <div class="d-flex flex-column gap-3">
+    {% if buses %}
+      {% for bus in buses %}
+      <a href="{% url 'bus_detail' bus.id %}?from_stop={{ selected_from_stop|default:'' }}&to_stop={{ selected_to_stop|default:'' }}"
+        class="bus-card">
+
+        <div class="d-flex align-items-center mb-3">
+          <span class="t-big">{% if bus.first_stop %}{{ bus.first_stop.time|time:"H:i" }}{% else %}—{% endif %}</span>
+          <div class="t-sep"></div>
+          <span class="t-big">{% if bus.last_stop %}{{ bus.last_stop.time|time:"H:i" }}{% else %}—{% endif %}</span>
+          <span class="t-stops ms-3">{{ bus.stop_count }} stops</span>
         </div>
 
-        {% endif %}
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="bus-badge">{{ bus.bus_number }}</span>
+          <span class="route-label">
+            {% if bus.first_stop %}{{ bus.first_stop.stop.name }}{% endif %} →
+            {% if bus.last_stop %}{{ bus.last_stop.stop.name }}{% endif %}
+          </span>
+          <span class="status-badge {% if bus.is_active %}active{% else %}inactive{% endif %}">
+            {% if bus.is_active %}active{% else %}inactive{% endif %}
+          </span>
+        </div>
 
-    </div>
+        <div class="card-foot">{{ bus.bus_type }}</div>
+      </a>
+      {% endfor %}
+
+    {% elif selected_from_stop or selected_to_stop or request.GET.date %}
+      <div class="empty-state">
+        <i class="fa-regular fa-face-meh"></i>
+        <p class="mb-1">No buses found for this route.</p>
+        <small>Try different stops or a different date.</small>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="fa-solid fa-bus"></i>
+        <p>Select stops above to find buses.</p>
+      </div>
+    {% endif %}
+  </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.getElementById('swap-btn').addEventListener('click', function () {
+    const from = document.getElementById('id_from');
+    const to   = document.getElementById('id_to');
+    const tmp  = from.value;
+    from.value = to.value;
+    to.value   = tmp;
+  });
+</script>
 
 {% endblock %}

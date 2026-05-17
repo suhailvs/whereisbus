@@ -2,8 +2,8 @@
 {% load static %}
 
 {% block title %}{{ selected_bus.bus_number }} — Bus Detail{% endblock %}
+{% block styles %}
 
-{% block content %}
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
@@ -29,10 +29,6 @@
   }
   body { font-family: var(--mono); background: var(--cream); color: var(--ink); }
 
-  /* navbar */
-  .bs-navbar { background: #fff; border-bottom: 1px solid var(--rule); }
-  .bs-navbar .navbar-brand { font-family: var(--serif); font-size: 22px; font-weight: 300; color: var(--ink); }
-  .bs-navbar .navbar-brand span { font-style: italic; }
 
   /* back link */
   .back-link { font-size: 13px; color: var(--ink-3); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: color .15s; }
@@ -80,14 +76,8 @@
 
   .stop-time { font-family: var(--serif); font-size: 20px; font-weight: 600; color: var(--ink); align-self: center; white-space: nowrap; }
 </style>
-
-<!-- NAVBAR -->
-<nav class="navbar bs-navbar px-3 px-md-4">
-  <a class="navbar-brand" href="{% url 'bus_search' %}">bus <span>timings</span></a>
-  <button class="btn btn-sm btn-outline-secondary rounded-pill" style="font-family:var(--mono);font-size:12px;">
-    <i class="fa-solid fa-location-dot me-1"></i> location
-  </button>
-</nav>
+{% endblock %}
+{% block content %}
 
 <!-- MAIN -->
 <div class="container py-4" style="max-width:760px;">

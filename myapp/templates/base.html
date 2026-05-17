@@ -9,10 +9,27 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+ 
+<style>
+          /* navbar */
+        .bs-navbar { background: #fff; border-bottom: 1px solid var(--rule); }
+        .bs-navbar .navbar-brand { font-family: var(--serif); font-size: 22px; font-weight: 300; color: var(--ink); }
+        .bs-navbar .navbar-brand span { font-style: italic; }
+
+    </style>
+    {% block styles %}{% endblock %}
 </head>
 <body>
 
 <div class="container">
+    <!-- NAVBAR -->
+    <nav class="navbar bs-navbar px-3 px-md-4">
+    <a class="navbar-brand" href="{% url 'bus_search' %}">Home</a>
+    <a class="btn btn-sm btn-outline-secondary rounded-pill" href="{% url 'bus_create' %}" style="font-family:var(--mono);font-size:12px;">
+        <i class="fa-solid fa-plus me-1"></i> create
+    </a>
+    </nav>
     {% block content %}{% endblock %}
 </div>
 

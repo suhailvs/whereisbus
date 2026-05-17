@@ -2,8 +2,8 @@
 {% load static %}
 
 {% block title %}Bus Search{% endblock %}
+{% block styles %}
 
-{% block content %}
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
@@ -27,10 +27,6 @@
   }
   body { font-family: var(--mono); background: var(--cream); color: var(--ink); }
 
-  /* navbar */
-  .bs-navbar { background: #fff; border-bottom: 1px solid var(--rule); }
-  .bs-navbar .navbar-brand { font-family: var(--serif); font-size: 22px; font-weight: 300; color: var(--ink); }
-  .bs-navbar .navbar-brand span { font-style: italic; }
 
   /* search card */
   .search-card { background: #fff; border: 1px solid var(--rule); border-radius: 18px; padding: 28px; }
@@ -76,15 +72,9 @@
   .empty-state { text-align: center; padding: 52px 0; color: var(--ink-3); }
   .empty-state i { font-size: 40px; display: block; margin-bottom: 14px; }
 </style>
+{% endblock %}
 
-<!-- NAVBAR -->
-<nav class="navbar bs-navbar px-3 px-md-4">
-  <a class="navbar-brand" href="{% url 'bus_search' %}">bus <span>timings</span></a>
-  <button class="btn btn-sm btn-outline-secondary rounded-pill" style="font-family:var(--mono);font-size:12px;">
-    <i class="fa-solid fa-location-dot me-1"></i> location
-  </button>
-</nav>
-
+{% block content %}
 <!-- MAIN -->
 <div class="container py-4" style="max-width:860px;">
 

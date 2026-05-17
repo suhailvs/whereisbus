@@ -3,76 +3,49 @@
 
 {% block title %}New Bus Route{% endblock %}
 
-{% block content %}
-
-<!-- Leaflet -->
+{% block styles %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-  /* ── Additions that extend style.css without overriding it ── */
-
+  :root {
+    --cream:    #f5f3ee;
+    --ink:      #1a1a18;
+    --bs-primary: #2463eb;
+    --bs-primary-rgb: 36, 99, 235;
+    --mono:     'DM Mono', monospace;
+    --serif:    'Fraunces', Georgia, serif;
+  }
+  body { font-family: var(--mono); background: var(--cream); color: var(--ink); }
   /* Map */
   #map {
     height: 100%;
     min-height: 480px;
-    border-radius: 16px;
-    border: 1px solid #ddd;
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
     overflow: hidden;
   }
-  .map-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-  }
-  .map-hint { font-size: 13px; color: #777; flex: 1; }
   #map.pin-mode { cursor: crosshair; }
-  .pin-banner {
-    display: none;
-    background: #2463eb;
-    color: white;
-    text-align: center;
-    padding: 8px 14px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 10px;
-  }
-  .pin-banner.active { display: block; }
 
   /* Stop search dropdown */
-  .search-wrap { position: relative; margin-bottom: 12px; }
-  .search-wrap input {
-    width: 100%;
-    padding: 12px 14px 12px 38px;
-    border-radius: 14px;
-    border: 1px solid #ccc;
-    background: white;
-    font-size: 15px;
-    font-family: Inter, sans-serif;
-    outline: none;
-    transition: border-color .2s, box-shadow .2s;
-  }
-  .search-wrap input:focus {
-    border-color: #2463eb;
-    box-shadow: 0 0 0 3px rgba(36,99,235,.1);
-  }
+  .search-wrap { position: relative; }
   .search-icon {
     position: absolute; left: 12px; top: 50%;
     transform: translateY(-50%);
     color: #aaa; font-size: 15px; pointer-events: none;
+    z-index: 5;
   }
+  .search-wrap .form-control { padding-left: 36px; }
   .stop-results {
     display: none;
     position: absolute; top: 100%; left: 0; right: 0; z-index: 200;
     background: white;
-    border: 1px solid #ddd;
-    border-radius: 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0,0,0,.12);
-    max-height: 200px;
+    max-height: 220px;
     overflow-y: auto;
   }
   .stop-results.open { display: block; }
@@ -83,36 +56,17 @@
     transition: background .15s;
   }
   .stop-result-item:last-child { border-bottom: none; }
-  .stop-result-item:hover { background: #f4f4f1; }
+  .stop-result-item:hover { background: #f8f9fa; }
   .sri-name { font-size: 14px; font-weight: 500; }
-  .sri-meta { font-size: 12px; color: #888; margin-top: 1px; }
+  .sri-meta { font-size: 12px; color: #6c757d; margin-top: 1px; }
   .stop-results-empty { padding: 14px; font-size: 13px; color: #999; text-align: center; }
-
-  /* Section label */
-  .section-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: #999;
-    margin-bottom: 12px;
-  }
 
   /* Route stop cards */
   #route-list { display: flex; flex-direction: column; gap: 8px; }
-  .route-empty {
-    padding: 28px 16px;
-    text-align: center;
-    color: #aaa;
-    font-size: 14px;
-    border: 1px dashed #ddd;
-    border-radius: 14px;
-    background: #fafaf8;
-  }
   .route-stop-card {
     background: white;
-    border: 1px solid #ddd;
-    border-radius: 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
     padding: 12px 14px;
     display: grid;
     grid-template-columns: 28px 1fr auto;
@@ -127,143 +81,73 @@
   .route-stop-card.is-first { border-color: #5a9e3c; background: #f4faee; }
   .route-stop-card.is-last  { border-color: #e06060; background: #fdf3f3; }
 
-  .stop-order-num {
-    font-size: 12px; font-weight: 700;
-    color: #2463eb; padding-top: 3px; text-align: center;
-  }
+  .stop-order-num { font-size: 12px; font-weight: 700; color: #2463eb; padding-top: 3px; text-align: center; }
   .stop-card-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
-  .stop-card-dist { font-size: 12px; color: #888; margin-bottom: 8px; }
+  .stop-card-dist { font-size: 12px; color: #6c757d; margin-bottom: 8px; }
   .stop-card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-  .sc-label {
-    font-size: 11px; font-weight: 600; color: #999;
-    text-transform: uppercase; letter-spacing: .05em;
-    display: block; margin-bottom: 3px;
-  }
+  .sc-label { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 3px; }
   .sc-field input[type="time"] {
     width: 100%; padding: 7px 10px;
-    border: 1px solid #ccc; border-radius: 10px;
-    font-size: 13px; font-family: Inter, sans-serif;
-    background: #fafaf8; outline: none;
+    border: 1px solid #dee2e6; border-radius: 8px;
+    font-size: 13px; background: #f8f9fa; outline: none;
   }
-  .sc-field input[type="time"]:focus { border-color: #2463eb; }
+  .sc-field input[type="time"]:focus { border-color: #2463eb; box-shadow: 0 0 0 3px rgba(36,99,235,.1); }
   .sc-checks { display: flex; flex-direction: column; gap: 5px; padding-top: 2px; }
-  .sc-check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666; cursor: pointer; }
-  .sc-check input { accent-color: #2463eb; width: 13px; height: 13px; }
+  .sc-check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555; cursor: pointer; }
+  .sc-check input { accent-color: #2463eb; }
 
   .stop-remove-btn {
     background: none; border: none; color: #ccc;
     font-size: 18px; cursor: pointer; line-height: 1; padding: 0 2px;
     transition: color .2s;
   }
-  .stop-remove-btn:hover { color: #e05252; }
-  .route-connector { height: 8px; margin-left: 27px; border-left: 2px dashed #ddd; }
+  .stop-remove-btn:hover { color: #dc3545; }
+  .route-connector { height: 8px; margin-left: 27px; border-left: 2px dashed #dee2e6; }
 
-  /* Buttons */
-  .btn-blue {
-    background: #2463eb; color: white; border: none;
-    border-radius: 12px; padding: 12px 20px;
-    font-size: 15px; font-family: Inter, sans-serif;
-    cursor: pointer; font-weight: 600;
-    display: inline-flex; align-items: center; gap: 6px;
-    transition: background .2s, box-shadow .2s;
-  }
-  .btn-blue:hover { background: #1a4ec0; box-shadow: 0 4px 14px rgba(36,99,235,.25); }
-  .btn-outline {
-    background: white; color: #444;
-    border: 1px solid #ccc; border-radius: 12px;
-    padding: 10px 16px; font-size: 14px; font-family: Inter, sans-serif;
-    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
-    transition: border-color .2s, color .2s;
-  }
-  .btn-outline:hover { border-color: #2463eb; color: #2463eb; }
-
-  /* Messages */
-  .msg {
-    padding: 10px 16px; border-radius: 12px;
-    font-size: 14px; margin-bottom: 10px; border-left: 3px solid;
-  }
-  .msg-error   { background: #fdecea; border-color: #d94f4f; color: #a03030; }
-  .msg-success { background: #eaf5e6; border-color: #5a9e3c; color: #3a6626; }
-
-  /* Modal */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0; z-index: 1000;
-    background: rgba(0,0,0,.35); backdrop-filter: blur(3px);
-    align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: white; border-radius: 20px;
-    width: 420px; max-width: 95vw;
-    box-shadow: 0 16px 48px rgba(0,0,0,.18);
-    animation: modal-in .2s ease;
-  }
-  @keyframes modal-in {
-    from { opacity: 0; transform: scale(.97) translateY(-10px); }
-    to   { opacity: 1; transform: scale(1)  translateY(0); }
-  }
-  .modal-header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 18px 20px 14px; border-bottom: 1px solid #eee;
-  }
-  .modal-header h3 { flex: 1; font-size: 16px; }
-  .modal-close {
-    background: none; border: none; font-size: 22px;
-    color: #aaa; cursor: pointer; line-height: 1; transition: color .2s;
-  }
-  .modal-close:hover { color: #444; }
-  .modal-body { padding: 18px 20px; }
-  .modal-footer { padding: 0 20px 18px; display: flex; gap: 8px; justify-content: flex-end; }
-
+  /* Coords pill */
   .coords-pill {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 12px; border-radius: 10px;
-    font-size: 12px; font-weight: 600; margin-bottom: 14px;
+    padding: 7px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
     background: #e8f0fb; color: #2463eb;
   }
-  .coords-pill.empty { background: #f4f4f1; color: #aaa; }
-
-  .modal-field { margin-bottom: 12px; }
-  .modal-field label {
-    display: block; font-size: 12px; font-weight: 600;
-    color: #777; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px;
-  }
-  .modal-field input {
-    width: 100%; padding: 11px 14px;
-    border: 1px solid #ccc; border-radius: 12px;
-    font-size: 14px; font-family: Inter, sans-serif;
-    background: #fafaf8; outline: none;
-    transition: border-color .2s, box-shadow .2s;
-  }
-  .modal-field input:focus {
-    border-color: #2463eb;
-    box-shadow: 0 0 0 3px rgba(36,99,235,.1);
-  }
-  .ns-error { color: #d94f4f; font-size: 12px; margin-top: 6px; display: none; }
+  .coords-pill.empty { background: #f8f9fa; color: #aaa; }
 
   /* Toast */
   #toast {
     position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-    background: white; border: 1px solid #ddd; border-radius: 12px;
-    padding: 10px 16px; font-size: 13px;
-    box-shadow: 0 6px 20px rgba(0,0,0,.12);
     opacity: 0; pointer-events: none; transition: opacity .3s;
+    min-width: 220px;
   }
+
+  /* Pin banner */
+  #pin-banner { display: none; }
+  #pin-banner.active { display: flex; }
 </style>
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <!-- Messages -->
 {% if messages %}
   {% for message in messages %}
-    <div class="msg msg-{{ message.tags }}">{{ message }}</div>
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
   {% endfor %}
 {% endif %}
 
 <!-- Page header -->
-<div class="header-row" style="margin-bottom: 20px;">
-  <h2>New Bus Route</h2>
-  <a href="{% url 'bus_search' %}" class="back-btn location-btn" style="text-decoration:none; font-size:14px;">
-    <i class="fa-solid fa-arrow-left"></i> Back
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h4 class="fw-semibold mb-0">
+    <i class="fa-solid fa-bus me-2 text-primary"></i> New Bus Route
+  </h4>
+  <a href="{% url 'bus_search' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="fa-solid fa-arrow-left me-1"></i> Back
   </a>
 </div>
 
@@ -271,29 +155,26 @@
   {% csrf_token %}
   <input type="hidden" name="stops_json" id="stops-json-input" />
 
-  <div class="bus-layout">
+  <div class="row g-4">
 
-    <!-- ── Left: form ─────────────────────────────── -->
-    <div class="search-panel" style="display:flex; flex-direction:column; gap:18px;">
+    <!-- ── Left column ── -->
+    <div class="col-12 col-lg-5 d-flex flex-column gap-4">
 
-      <!-- Bus details -->
-      <div>
-        <div class="section-label">Bus Details</div>
-        <div class="route-box" style="flex-direction:column; gap:12px; align-items:stretch;">
-          <div style="display:flex; gap:12px;">
-            <div class="field">
-              <label for="bus_number">Bus Number</label>
-              <input type="text" id="bus_number" name="bus_number"
+      <!-- Bus details card -->
+      <div class="card border shadow-sm">
+        <div class="card-body">
+          <p class="text-uppercase text-muted fw-bold" style="font-size:11px;letter-spacing:.08em;">Bus Details</p>
+
+          <div class="row g-3 mb-3">
+            <div class="col-7">
+              <label for="bus_number" class="form-label small fw-semibold">Bus Number</label>
+              <input type="text" class="form-control" id="bus_number" name="bus_number"
                      placeholder="e.g. KL-13-N-1234"
-                     value="{{ form_data.bus_number|default:'' }}"
-                     style="width:100%; padding:12px 14px; border-radius:14px;
-                            border:1px solid #ccc; font-size:15px;
-                            font-family:Inter,sans-serif; outline:none;"
-                     required />
+                     value="{{ form_data.bus_number|default:'' }}" required />
             </div>
-            <div class="field">
-              <label for="bus_type">Type</label>
-              <select id="bus_type" name="bus_type" required>
+            <div class="col-5">
+              <label for="bus_type" class="form-label small fw-semibold">Type</label>
+              <select class="form-select" id="bus_type" name="bus_type" required>
                 <option value="">— select —</option>
                 {% for bt in bus_types %}
                   <option value="{{ bt }}" {% if form_data.bus_type == bt %}selected{% endif %}>{{ bt }}</option>
@@ -301,116 +182,145 @@
               </select>
             </div>
           </div>
-          <label style="display:flex; align-items:center; gap:8px; font-size:14px; cursor:pointer; color:#444; font-weight:400;">
-            <input type="checkbox" name="is_active" id="is_active"
-                   {% if not form_data or form_data.is_active %}checked{% endif %}
-                   style="accent-color:#2463eb; width:15px; height:15px;" />
-            Active — visible in route search
-          </label>
+
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_active" id="is_active"
+                   {% if not form_data or form_data.is_active %}checked{% endif %} />
+            <label class="form-check-label small" for="is_active">
+              Active — visible in route search
+            </label>
+          </div>
         </div>
       </div>
 
-      <!-- Stop picker -->
-      <div>
-        <div class="section-label">Add Stops to Route</div>
-        <div class="search-wrap">
-          <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-          <input type="text" id="stop-search"
-                 placeholder="Search stops by name or district…" autocomplete="off" />
-          <div class="stop-results" id="stop-results"></div>
-        </div>
-        <button type="button" class="btn-outline" id="open-new-stop-btn"
-                style="width:100%; justify-content:center;">
-          <i class="fa-solid fa-map-pin"></i> Pin new stop on map
-        </button>
-      </div>
+      <!-- Stop picker card -->
+      <div class="card border shadow-sm">
+        <div class="card-body">
+          <p class="text-uppercase text-muted fw-bold mb-3" style="font-size:11px;letter-spacing:.08em;">Add Stops to Route</p>
 
-      <!-- Route list -->
-      <div style="flex:1;">
-        <div class="section-label" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-          <span>Route Order</span>
-          <button type="button" onclick="clearRoute()"
-                  style="background:none;border:none;font-size:12px;color:#aaa;
-                         cursor:pointer;font-family:Inter,sans-serif; padding:0;">
-            Clear all
+          <div class="search-wrap mb-3">
+            <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <input type="text" class="form-control" id="stop-search"
+                   placeholder="Search stops by name or district…" autocomplete="off" />
+            <div class="stop-results" id="stop-results"></div>
+          </div>
+
+          <button type="button" class="btn btn-outline-secondary w-100" id="open-new-stop-btn">
+            <i class="fa-solid fa-map-pin me-1"></i> Pin new stop on map
           </button>
         </div>
-        <div id="route-empty" class="route-empty">
-          <i class="fa-solid fa-route" style="font-size:22px; color:#ccc; display:block; margin-bottom:8px;"></i>
-          Search and add stops above to build the route.
+      </div>
+
+      <!-- Route order card -->
+      <div class="card border shadow-sm flex-fill">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <p class="text-uppercase text-muted fw-bold mb-0" style="font-size:11px;letter-spacing:.08em;">Route Order</p>
+            <button type="button" onclick="clearRoute()"
+                    class="btn btn-link btn-sm text-muted p-0 text-decoration-none">
+              Clear all
+            </button>
+          </div>
+
+          <div id="route-empty" class="text-center py-4 text-muted border border-dashed rounded-3" style="border-style:dashed!important;">
+            <i class="fa-solid fa-route fs-3 d-block mb-2 text-secondary opacity-50"></i>
+            Search and add stops above to build the route.
+          </div>
+          <div id="route-list"></div>
         </div>
-        <div id="route-list"></div>
       </div>
 
       <!-- Submit -->
-      <button type="submit" class="btn-blue search-btn"
-              style="float:none; width:100%; justify-content:center; margin-top:0;">
-        <i class="fa-solid fa-check"></i> Create Route
+      <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">
+        <i class="fa-solid fa-check me-2"></i> Create Route
       </button>
 
-    </div><!-- .search-panel -->
+    </div><!-- col left -->
 
-    <!-- ── Right: map ──────────────────────────────── -->
-    <div class="detail-panel" style="display:flex; flex-direction:column;">
-      <div class="section-label">Map</div>
+    <!-- ── Right column: map ── -->
+    <div class="col-12 col-lg-7">
+      <div class="card border shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <p class="text-uppercase text-muted fw-bold mb-3" style="font-size:11px;letter-spacing:.08em;">Map</p>
 
-      <div class="map-toolbar">
-        <span class="map-hint">
-          <i class="fa-solid fa-circle-info" style="color:#2463eb;"></i>
-          Enable pin mode, then click the map to place a new stop.
-        </span>
-        <button type="button" class="btn-outline" id="toggle-pin-btn">
-          <i class="fa-solid fa-map-pin"></i> Pin Mode
+          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+            <span class="text-muted small flex-fill">
+              <i class="fa-solid fa-circle-info text-primary me-1"></i>
+              Enable pin mode, then click the map to place a new stop.
+            </span>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="toggle-pin-btn">
+              <i class="fa-solid fa-map-pin me-1"></i> Pin Mode
+            </button>
+          </div>
+
+          <div id="pin-banner"
+               class="alert alert-primary d-flex align-items-center gap-2 py-2 mb-2 active"
+               style="font-size:13px;">
+            <i class="fa-solid fa-crosshairs"></i>
+            <span>Click the map to pin a location</span>
+          </div>
+
+          <div id="map" class="flex-fill"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- row -->
+</form>
+
+<!-- ── New Stop Modal (Bootstrap) ── -->
+<div class="modal fade" id="new-stop-modal" tabindex="-1" aria-labelledby="modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-semibold" id="modal-title">
+          <i class="fa-solid fa-map-pin text-primary me-2"></i> Add New Stop
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="coords-pill empty mb-3" id="coords-display">
+          <i class="fa-solid fa-location-crosshairs"></i> No location pinned yet
+        </div>
+
+        <div class="mb-3">
+          <label for="ns-name" class="form-label small fw-semibold text-uppercase text-muted" style="letter-spacing:.05em;">Stop Name *</label>
+          <input type="text" class="form-control" id="ns-name" placeholder="e.g. Thrissur Town Bus Stand" />
+        </div>
+        <div class="mb-3">
+          <label for="ns-district" class="form-label small fw-semibold text-uppercase text-muted" style="letter-spacing:.05em;">District *</label>
+          <input type="text" class="form-control" id="ns-district" placeholder="e.g. Thrissur" />
+        </div>
+        <div class="mb-3">
+          <label for="ns-landmark" class="form-label small fw-semibold text-uppercase text-muted" style="letter-spacing:.05em;">Landmark / Notes</label>
+          <input type="text" class="form-control" id="ns-landmark" placeholder="e.g. Near SBI ATM" />
+        </div>
+
+        <div class="text-danger small" id="ns-error" style="display:none;"></div>
+      </div>
+
+      <div class="modal-footer border-top">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="modal-save-btn">
+          <i class="fa-solid fa-plus me-1"></i> Save &amp; Add to Route
         </button>
       </div>
 
-      <div class="pin-banner" id="pin-banner">
-        <i class="fa-solid fa-crosshairs"></i> Click the map to pin a location
-      </div>
-
-      <div id="map"></div>
-    </div>
-
-  </div><!-- .bus-layout -->
-</form>
-
-<!-- ── New Stop Modal ──────────────────────────────── -->
-<div class="modal-overlay" id="new-stop-modal">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal-header">
-      <i class="fa-solid fa-map-pin" style="color:#2463eb;"></i>
-      <h3 id="modal-title">Add New Stop</h3>
-      <button class="modal-close" id="modal-close-btn">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="coords-pill empty" id="coords-display">
-        <i class="fa-solid fa-location-crosshairs"></i> No location pinned yet
-      </div>
-      <div class="modal-field">
-        <label for="ns-name">Stop Name *</label>
-        <input type="text" id="ns-name" placeholder="e.g. Thrissur Town Bus Stand" />
-      </div>
-      <div class="modal-field">
-        <label for="ns-district">District *</label>
-        <input type="text" id="ns-district" placeholder="e.g. Thrissur" />
-      </div>
-      <div class="modal-field">
-        <label for="ns-landmark">Landmark / Notes</label>
-        <input type="text" id="ns-landmark" placeholder="e.g. Near SBI ATM" />
-      </div>
-      <div class="ns-error" id="ns-error"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-outline" id="modal-cancel-btn">Cancel</button>
-      <button class="btn-blue" id="modal-save-btn">
-        <i class="fa-solid fa-plus"></i> Save &amp; Add to Route
-      </button>
     </div>
   </div>
 </div>
 
-<div id="toast"></div>
+<!-- Toast -->
+<div id="toast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+  <div class="d-flex">
+    <div class="toast-body" id="toast-body">Message here</div>
+    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+  </div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // ─── Data ────────────────────────────────────────────
 const ALL_STOPS = {{ stops_json|safe }};
@@ -427,6 +337,9 @@ try {
   });
 } catch(e) {}
 {% endif %}
+
+// ─── Bootstrap modal instance ─────────────────────────
+const bsModal = new bootstrap.Modal(document.getElementById('new-stop-modal'));
 
 // ─── Map ─────────────────────────────────────────────
 const map = L.map('map').setView([10.5, 76.2], 8);
@@ -451,10 +364,9 @@ const pinIcon = L.divIcon({
   iconSize: [24,24], iconAnchor: [12,24],
 });
 
-let routeMarkers=[], routePolyline=null;
-let pinnedMarker=null, pinnedLatLng=null, pinMode=false;
+let routeMarkers = [], routePolyline = null;
+let pinnedMarker = null, pinnedLatLng = null, pinMode = false;
 
-// Existing stops as light dots
 ALL_STOPS.forEach(s => {
   if (!s.latitude || !s.longitude) return;
   L.circleMarker([parseFloat(s.latitude), parseFloat(s.longitude)], {
@@ -534,9 +446,7 @@ function renderList() {
 
   list.querySelectorAll('[data-field]').forEach(el => {
     el.addEventListener('change', updateRouteField);
-    if (el.type !== 'checkbox') {
-      el.addEventListener('input', updateRouteField);
-    }
+    if (el.type !== 'checkbox') el.addEventListener('input', updateRouteField);
   });
   list.querySelectorAll('[data-remove]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -571,10 +481,10 @@ function syncRouteFromInputs() {
 function syncInput() {
   document.getElementById('stops-json-input').value = JSON.stringify(
     route.map((s,i) => ({
-      stop_id:s.stop_id, time:s.time||'00:00',
-      is_boarding:s.is_boarding||false,
-      is_destination:s.is_destination||false,
-      order:i,
+      stop_id: s.stop_id, time: s.time||'00:00',
+      is_boarding: s.is_boarding||false,
+      is_destination: s.is_destination||false,
+      order: i,
     }))
   );
 }
@@ -583,11 +493,11 @@ function syncInput() {
 function addStop(stop) {
   if (route.find(s => s.stop_id===stop.id)) { showToast('Stop already in route'); return; }
   route.push({
-    stop_id:stop.id, name:stop.name, district:stop.district,
-    landmark:stop.landmark||'',
-    lat:stop.latitude  ? parseFloat(stop.latitude)  : null,
-    lng:stop.longitude ? parseFloat(stop.longitude) : null,
-    time:'', is_boarding:false, is_destination:false,
+    stop_id: stop.id, name: stop.name, district: stop.district,
+    landmark: stop.landmark||'',
+    lat: stop.latitude  ? parseFloat(stop.latitude)  : null,
+    lng: stop.longitude ? parseFloat(stop.longitude) : null,
+    time: '', is_boarding: false, is_destination: false,
   });
   renderRoute();
   if (stop.latitude && stop.longitude)
@@ -643,8 +553,8 @@ pinBtn.addEventListener('click', () => {
   mapEl.classList.toggle('pin-mode', pinMode);
   pinBanner.classList.toggle('active', pinMode);
   pinBtn.innerHTML = pinMode
-    ? '<i class="fa-solid fa-xmark"></i> Cancel'
-    : '<i class="fa-solid fa-map-pin"></i> Pin Mode';
+    ? '<i class="fa-solid fa-xmark me-1"></i> Cancel'
+    : '<i class="fa-solid fa-map-pin me-1"></i> Pin Mode';
 });
 
 map.on('click', e => {
@@ -657,26 +567,21 @@ map.on('click', e => {
   pinMode = false;
   mapEl.classList.remove('pin-mode');
   pinBanner.classList.remove('active');
-  pinBtn.innerHTML = '<i class="fa-solid fa-map-pin"></i> Pin Mode';
+  pinBtn.innerHTML = '<i class="fa-solid fa-map-pin me-1"></i> Pin Mode';
   updateCoords();
   openModal();
 });
 
 // ─── Modal ───────────────────────────────────────────
-const modal = document.getElementById('new-stop-modal');
 document.getElementById('open-new-stop-btn').addEventListener('click', openModal);
-document.getElementById('modal-close-btn').addEventListener('click', closeModal);
-document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
-modal.addEventListener('click', e => { if (e.target===modal) closeModal(); });
 
 function openModal() {
   updateCoords();
   ['ns-name','ns-district','ns-landmark'].forEach(id => document.getElementById(id).value='');
   document.getElementById('ns-error').style.display = 'none';
-  modal.classList.add('open');
-  setTimeout(() => document.getElementById('ns-name').focus(), 120);
+  bsModal.show();
+  setTimeout(() => document.getElementById('ns-name').focus(), 300);
 }
-function closeModal() { modal.classList.remove('open'); }
 
 function updateCoords() {
   const el = document.getElementById('coords-display');
@@ -697,18 +602,18 @@ document.getElementById('modal-save-btn').addEventListener('click', async () => 
   const errEl    = document.getElementById('ns-error');
 
   errEl.style.display = 'none';
-  if (!name)     { errEl.textContent='Stop name is required.';  errEl.style.display='block'; return; }
-  if (!district) { errEl.textContent='District is required.';   errEl.style.display='block'; return; }
+  if (!name)     { errEl.textContent='Stop name is required.'; errEl.style.display='block'; return; }
+  if (!district) { errEl.textContent='District is required.';  errEl.style.display='block'; return; }
 
   const btn = document.getElementById('modal-save-btn');
   btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving…';
 
   try {
     const res = await fetch("{% url 'stop_create_ajax' %}", {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'X-CSRFToken':getCsrf() },
-      body:JSON.stringify({
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+      body: JSON.stringify({
         name, district, landmark,
         latitude:  pinnedLatLng?.lat ?? null,
         longitude: pinnedLatLng?.lng ?? null,
@@ -721,14 +626,14 @@ document.getElementById('modal-save-btn').addEventListener('click', async () => 
     addStop(data);
     if (pinnedMarker) { map.removeLayer(pinnedMarker); pinnedMarker=null; }
     pinnedLatLng = null;
-    closeModal();
+    bsModal.hide();
     showToast(`"${name}" added to route`);
   } catch(e) {
     errEl.textContent = 'Network error. Please try again.';
     errEl.style.display = 'block';
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-plus"></i> Save &amp; Add to Route';
+    btn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Save &amp; Add to Route';
   }
 });
 
@@ -754,13 +659,10 @@ function getCsrf() {
     .find(c=>c.startsWith('csrftoken='))?.split('=')[1] || '';
 }
 
-let toastTimer;
+const bsToast = new bootstrap.Toast(document.getElementById('toast'), { delay: 3000 });
 function showToast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.style.opacity = '1';
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.style.opacity='0', 3000);
+  document.getElementById('toast-body').textContent = msg;
+  bsToast.show();
 }
 
 // ─── Init ────────────────────────────────────────────

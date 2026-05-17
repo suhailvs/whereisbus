@@ -1,0 +1,755 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}New Bus Route{% endblock %}
+
+{% block content %}
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+<style>
+  /* ── Additions that extend style.css without overriding it ── */
+
+  /* Map */
+  #map {
+    height: 100%;
+    min-height: 480px;
+    border-radius: 16px;
+    border: 1px solid #ddd;
+    overflow: hidden;
+  }
+  .map-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .map-hint { font-size: 13px; color: #777; flex: 1; }
+  #map.pin-mode { cursor: crosshair; }
+  .pin-banner {
+    display: none;
+    background: #2463eb;
+    color: white;
+    text-align: center;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .pin-banner.active { display: block; }
+
+  /* Stop search dropdown */
+  .search-wrap { position: relative; margin-bottom: 12px; }
+  .search-wrap input {
+    width: 100%;
+    padding: 12px 14px 12px 38px;
+    border-radius: 14px;
+    border: 1px solid #ccc;
+    background: white;
+    font-size: 15px;
+    font-family: Inter, sans-serif;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .search-wrap input:focus {
+    border-color: #2463eb;
+    box-shadow: 0 0 0 3px rgba(36,99,235,.1);
+  }
+  .search-icon {
+    position: absolute; left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: #aaa; font-size: 15px; pointer-events: none;
+  }
+  .stop-results {
+    display: none;
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 200;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .stop-results.open { display: block; }
+  .stop-result-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0ec;
+    transition: background .15s;
+  }
+  .stop-result-item:last-child { border-bottom: none; }
+  .stop-result-item:hover { background: #f4f4f1; }
+  .sri-name { font-size: 14px; font-weight: 500; }
+  .sri-meta { font-size: 12px; color: #888; margin-top: 1px; }
+  .stop-results-empty { padding: 14px; font-size: 13px; color: #999; text-align: center; }
+
+  /* Section label */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 12px;
+  }
+
+  /* Route stop cards */
+  #route-list { display: flex; flex-direction: column; gap: 8px; }
+  .route-empty {
+    padding: 28px 16px;
+    text-align: center;
+    color: #aaa;
+    font-size: 14px;
+    border: 1px dashed #ddd;
+    border-radius: 14px;
+    background: #fafaf8;
+  }
+  .route-stop-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    gap: 10px;
+    align-items: start;
+    cursor: grab;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .route-stop-card:active { cursor: grabbing; }
+  .route-stop-card.sortable-ghost { opacity: .35; }
+  .route-stop-card:hover { border-color: #2463eb; box-shadow: 0 2px 10px rgba(36,99,235,.08); }
+  .route-stop-card.is-first { border-color: #5a9e3c; background: #f4faee; }
+  .route-stop-card.is-last  { border-color: #e06060; background: #fdf3f3; }
+
+  .stop-order-num {
+    font-size: 12px; font-weight: 700;
+    color: #2463eb; padding-top: 3px; text-align: center;
+  }
+  .stop-card-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .stop-card-dist { font-size: 12px; color: #888; margin-bottom: 8px; }
+  .stop-card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  .sc-label {
+    font-size: 11px; font-weight: 600; color: #999;
+    text-transform: uppercase; letter-spacing: .05em;
+    display: block; margin-bottom: 3px;
+  }
+  .sc-field input[type="time"] {
+    width: 100%; padding: 7px 10px;
+    border: 1px solid #ccc; border-radius: 10px;
+    font-size: 13px; font-family: Inter, sans-serif;
+    background: #fafaf8; outline: none;
+  }
+  .sc-field input[type="time"]:focus { border-color: #2463eb; }
+  .sc-checks { display: flex; flex-direction: column; gap: 5px; padding-top: 2px; }
+  .sc-check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666; cursor: pointer; }
+  .sc-check input { accent-color: #2463eb; width: 13px; height: 13px; }
+
+  .stop-remove-btn {
+    background: none; border: none; color: #ccc;
+    font-size: 18px; cursor: pointer; line-height: 1; padding: 0 2px;
+    transition: color .2s;
+  }
+  .stop-remove-btn:hover { color: #e05252; }
+  .route-connector { height: 8px; margin-left: 27px; border-left: 2px dashed #ddd; }
+
+  /* Buttons */
+  .btn-blue {
+    background: #2463eb; color: white; border: none;
+    border-radius: 12px; padding: 12px 20px;
+    font-size: 15px; font-family: Inter, sans-serif;
+    cursor: pointer; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .2s, box-shadow .2s;
+  }
+  .btn-blue:hover { background: #1a4ec0; box-shadow: 0 4px 14px rgba(36,99,235,.25); }
+  .btn-outline {
+    background: white; color: #444;
+    border: 1px solid #ccc; border-radius: 12px;
+    padding: 10px 16px; font-size: 14px; font-family: Inter, sans-serif;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: border-color .2s, color .2s;
+  }
+  .btn-outline:hover { border-color: #2463eb; color: #2463eb; }
+
+  /* Messages */
+  .msg {
+    padding: 10px 16px; border-radius: 12px;
+    font-size: 14px; margin-bottom: 10px; border-left: 3px solid;
+  }
+  .msg-error   { background: #fdecea; border-color: #d94f4f; color: #a03030; }
+  .msg-success { background: #eaf5e6; border-color: #5a9e3c; color: #3a6626; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,.35); backdrop-filter: blur(3px);
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: 20px;
+    width: 420px; max-width: 95vw;
+    box-shadow: 0 16px 48px rgba(0,0,0,.18);
+    animation: modal-in .2s ease;
+  }
+  @keyframes modal-in {
+    from { opacity: 0; transform: scale(.97) translateY(-10px); }
+    to   { opacity: 1; transform: scale(1)  translateY(0); }
+  }
+  .modal-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 18px 20px 14px; border-bottom: 1px solid #eee;
+  }
+  .modal-header h3 { flex: 1; font-size: 16px; }
+  .modal-close {
+    background: none; border: none; font-size: 22px;
+    color: #aaa; cursor: pointer; line-height: 1; transition: color .2s;
+  }
+  .modal-close:hover { color: #444; }
+  .modal-body { padding: 18px 20px; }
+  .modal-footer { padding: 0 20px 18px; display: flex; gap: 8px; justify-content: flex-end; }
+
+  .coords-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 12px; border-radius: 10px;
+    font-size: 12px; font-weight: 600; margin-bottom: 14px;
+    background: #e8f0fb; color: #2463eb;
+  }
+  .coords-pill.empty { background: #f4f4f1; color: #aaa; }
+
+  .modal-field { margin-bottom: 12px; }
+  .modal-field label {
+    display: block; font-size: 12px; font-weight: 600;
+    color: #777; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px;
+  }
+  .modal-field input {
+    width: 100%; padding: 11px 14px;
+    border: 1px solid #ccc; border-radius: 12px;
+    font-size: 14px; font-family: Inter, sans-serif;
+    background: #fafaf8; outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .modal-field input:focus {
+    border-color: #2463eb;
+    box-shadow: 0 0 0 3px rgba(36,99,235,.1);
+  }
+  .ns-error { color: #d94f4f; font-size: 12px; margin-top: 6px; display: none; }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    background: white; border: 1px solid #ddd; border-radius: 12px;
+    padding: 10px 16px; font-size: 13px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+</style>
+
+<!-- Messages -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="msg msg-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<!-- Page header -->
+<div class="header-row" style="margin-bottom: 20px;">
+  <h2>New Bus Route</h2>
+  <a href="{% url 'bus_search' %}" class="back-btn location-btn" style="text-decoration:none; font-size:14px;">
+    <i class="fa-solid fa-arrow-left"></i> Back
+  </a>
+</div>
+
+<form method="post" id="bus-form">
+  {% csrf_token %}
+  <input type="hidden" name="stops_json" id="stops-json-input" />
+
+  <div class="bus-layout">
+
+    <!-- ── Left: form ─────────────────────────────── -->
+    <div class="search-panel" style="display:flex; flex-direction:column; gap:18px;">
+
+      <!-- Bus details -->
+      <div>
+        <div class="section-label">Bus Details</div>
+        <div class="route-box" style="flex-direction:column; gap:12px; align-items:stretch;">
+          <div style="display:flex; gap:12px;">
+            <div class="field">
+              <label for="bus_number">Bus Number</label>
+              <input type="text" id="bus_number" name="bus_number"
+                     placeholder="e.g. KL-13-N-1234"
+                     value="{{ form_data.bus_number|default:'' }}"
+                     style="width:100%; padding:12px 14px; border-radius:14px;
+                            border:1px solid #ccc; font-size:15px;
+                            font-family:Inter,sans-serif; outline:none;"
+                     required />
+            </div>
+            <div class="field">
+              <label for="bus_type">Type</label>
+              <select id="bus_type" name="bus_type" required>
+                <option value="">— select —</option>
+                {% for bt in bus_types %}
+                  <option value="{{ bt }}" {% if form_data.bus_type == bt %}selected{% endif %}>{{ bt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <label style="display:flex; align-items:center; gap:8px; font-size:14px; cursor:pointer; color:#444; font-weight:400;">
+            <input type="checkbox" name="is_active" id="is_active"
+                   {% if not form_data or form_data.is_active %}checked{% endif %}
+                   style="accent-color:#2463eb; width:15px; height:15px;" />
+            Active — visible in route search
+          </label>
+        </div>
+      </div>
+
+      <!-- Stop picker -->
+      <div>
+        <div class="section-label">Add Stops to Route</div>
+        <div class="search-wrap">
+          <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+          <input type="text" id="stop-search"
+                 placeholder="Search stops by name or district…" autocomplete="off" />
+          <div class="stop-results" id="stop-results"></div>
+        </div>
+        <button type="button" class="btn-outline" id="open-new-stop-btn"
+                style="width:100%; justify-content:center;">
+          <i class="fa-solid fa-map-pin"></i> Pin new stop on map
+        </button>
+      </div>
+
+      <!-- Route list -->
+      <div style="flex:1;">
+        <div class="section-label" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <span>Route Order</span>
+          <button type="button" onclick="clearRoute()"
+                  style="background:none;border:none;font-size:12px;color:#aaa;
+                         cursor:pointer;font-family:Inter,sans-serif; padding:0;">
+            Clear all
+          </button>
+        </div>
+        <div id="route-empty" class="route-empty">
+          <i class="fa-solid fa-route" style="font-size:22px; color:#ccc; display:block; margin-bottom:8px;"></i>
+          Search and add stops above to build the route.
+        </div>
+        <div id="route-list"></div>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="btn-blue search-btn"
+              style="float:none; width:100%; justify-content:center; margin-top:0;">
+        <i class="fa-solid fa-check"></i> Create Route
+      </button>
+
+    </div><!-- .search-panel -->
+
+    <!-- ── Right: map ──────────────────────────────── -->
+    <div class="detail-panel" style="display:flex; flex-direction:column;">
+      <div class="section-label">Map</div>
+
+      <div class="map-toolbar">
+        <span class="map-hint">
+          <i class="fa-solid fa-circle-info" style="color:#2463eb;"></i>
+          Enable pin mode, then click the map to place a new stop.
+        </span>
+        <button type="button" class="btn-outline" id="toggle-pin-btn">
+          <i class="fa-solid fa-map-pin"></i> Pin Mode
+        </button>
+      </div>
+
+      <div class="pin-banner" id="pin-banner">
+        <i class="fa-solid fa-crosshairs"></i> Click the map to pin a location
+      </div>
+
+      <div id="map"></div>
+    </div>
+
+  </div><!-- .bus-layout -->
+</form>
+
+<!-- ── New Stop Modal ──────────────────────────────── -->
+<div class="modal-overlay" id="new-stop-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <i class="fa-solid fa-map-pin" style="color:#2463eb;"></i>
+      <h3 id="modal-title">Add New Stop</h3>
+      <button class="modal-close" id="modal-close-btn">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="coords-pill empty" id="coords-display">
+        <i class="fa-solid fa-location-crosshairs"></i> No location pinned yet
+      </div>
+      <div class="modal-field">
+        <label for="ns-name">Stop Name *</label>
+        <input type="text" id="ns-name" placeholder="e.g. Thrissur Town Bus Stand" />
+      </div>
+      <div class="modal-field">
+        <label for="ns-district">District *</label>
+        <input type="text" id="ns-district" placeholder="e.g. Thrissur" />
+      </div>
+      <div class="modal-field">
+        <label for="ns-landmark">Landmark / Notes</label>
+        <input type="text" id="ns-landmark" placeholder="e.g. Near SBI ATM" />
+      </div>
+      <div class="ns-error" id="ns-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" id="modal-cancel-btn">Cancel</button>
+      <button class="btn-blue" id="modal-save-btn">
+        <i class="fa-solid fa-plus"></i> Save &amp; Add to Route
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── Data ────────────────────────────────────────────
+const ALL_STOPS = {{ stops_json|safe }};
+let route = [];
+
+{% if form_data and form_data.stops_json %}
+try {
+  JSON.parse({{ form_data.stops_json|safe }}).forEach(p => {
+    const s = ALL_STOPS.find(st => st.id === p.stop_id);
+    if (s) route.push({
+      ...p, name: s.name, district: s.district, landmark: s.landmark,
+      lat: parseFloat(s.latitude)||null, lng: parseFloat(s.longitude)||null,
+    });
+  });
+} catch(e) {}
+{% endif %}
+
+// ─── Map ─────────────────────────────────────────────
+const map = L.map('map').setView([10.5, 76.2], 8);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors', maxZoom: 19,
+}).addTo(map);
+
+function makeIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:14px;height:14px;border-radius:50%;
+      background:${color};border:2px solid white;
+      box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
+    iconSize: [14,14], iconAnchor: [7,7],
+  });
+}
+const pinIcon = L.divIcon({
+  className: '',
+  html: `<div style="width:24px;height:24px;border-radius:50% 50% 50% 0;
+    background:#2463eb;border:2px solid white;transform:rotate(-45deg);
+    box-shadow:0 2px 8px rgba(0,0,0,.25)"></div>`,
+  iconSize: [24,24], iconAnchor: [12,24],
+});
+
+let routeMarkers=[], routePolyline=null;
+let pinnedMarker=null, pinnedLatLng=null, pinMode=false;
+
+// Existing stops as light dots
+ALL_STOPS.forEach(s => {
+  if (!s.latitude || !s.longitude) return;
+  L.circleMarker([parseFloat(s.latitude), parseFloat(s.longitude)], {
+    radius:5, color:'#ccc', fillColor:'#bbb', fillOpacity:.8, weight:1,
+  }).bindTooltip(`${s.name} (${s.district})`, {direction:'top'}).addTo(map);
+});
+
+// ─── Route rendering ─────────────────────────────────
+function renderRoute() {
+  routeMarkers.forEach(m => map.removeLayer(m));
+  routeMarkers = [];
+  if (routePolyline) { map.removeLayer(routePolyline); routePolyline = null; }
+
+  const coords = [];
+  route.forEach((s, i) => {
+    if (!s.lat || !s.lng) return;
+    const color = i===0 ? '#5a9e3c' : i===route.length-1 ? '#e05252' : '#2463eb';
+    const m = L.marker([s.lat, s.lng], { icon: makeIcon(color) })
+      .bindTooltip(`${i+1}. ${s.name}`, {direction:'top'})
+      .addTo(map);
+    routeMarkers.push(m);
+    coords.push([s.lat, s.lng]);
+  });
+  if (coords.length >= 2) {
+    routePolyline = L.polyline(coords, {
+      color:'#2463eb', weight:3, opacity:.55, dashArray:'8,6',
+    }).addTo(map);
+  }
+  renderList();
+  syncInput();
+}
+
+// ─── Stop list ───────────────────────────────────────
+function renderList() {
+  const list  = document.getElementById('route-list');
+  const empty = document.getElementById('route-empty');
+  if (!route.length) { empty.style.display=''; list.innerHTML=''; return; }
+  empty.style.display = 'none';
+
+  list.innerHTML = route.map((s,i) => `
+    <div class="route-stop-card ${i===0?'is-first':''} ${i===route.length-1?'is-last':''}"
+         data-index="${i}">
+      <div class="stop-order-num">${i+1}</div>
+      <div>
+        <div class="stop-card-name">${s.name}</div>
+        <div class="stop-card-dist">${s.district}${s.landmark?' · '+s.landmark:''}</div>
+        <div class="stop-card-fields">
+          <div class="sc-field">
+            <span class="sc-label">Arrival</span>
+            <input type="time" data-field="time" data-index="${i}" value="${s.time||''}" />
+          </div>
+          <div class="sc-field sc-checks">
+            <label class="sc-check">
+              <input type="checkbox" data-field="is_boarding" data-index="${i}" ${s.is_boarding?'checked':''}/>
+              Boarding
+            </label>
+            <label class="sc-check">
+              <input type="checkbox" data-field="is_destination" data-index="${i}" ${s.is_destination?'checked':''}/>
+              Destination
+            </label>
+          </div>
+        </div>
+      </div>
+      <button class="stop-remove-btn" data-remove="${i}" title="Remove">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    ${i < route.length-1 ? '<div class="route-connector"></div>' : ''}
+  `).join('');
+
+  list.querySelectorAll('[data-field]').forEach(el => {
+    el.addEventListener('change', e => {
+      const i = parseInt(e.target.dataset.index);
+      const f = e.target.dataset.field;
+      route[i][f] = e.target.type==='checkbox' ? e.target.checked : e.target.value;
+      syncInput();
+    });
+  });
+  list.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      route.splice(parseInt(btn.dataset.remove), 1);
+      renderRoute();
+    });
+  });
+  initSortable();
+}
+
+function initSortable() {
+  Sortable.create(document.getElementById('route-list'), {
+    animation: 150,
+    filter: 'input,button,label',
+    preventOnFilter: false,
+    ghostClass: 'sortable-ghost',
+    onEnd(e) {
+      route.splice(e.newIndex, 0, route.splice(e.oldIndex, 1)[0]);
+      renderRoute();
+    },
+  });
+}
+
+function syncInput() {
+  document.getElementById('stops-json-input').value = JSON.stringify(
+    route.map((s,i) => ({
+      stop_id:s.stop_id, time:s.time||'00:00',
+      is_boarding:s.is_boarding||false,
+      is_destination:s.is_destination||false,
+      order:i,
+    }))
+  );
+}
+
+// ─── Add stop ────────────────────────────────────────
+function addStop(stop) {
+  if (route.find(s => s.stop_id===stop.id)) { showToast('Stop already in route'); return; }
+  route.push({
+    stop_id:stop.id, name:stop.name, district:stop.district,
+    landmark:stop.landmark||'',
+    lat:stop.latitude  ? parseFloat(stop.latitude)  : null,
+    lng:stop.longitude ? parseFloat(stop.longitude) : null,
+    time:'', is_boarding:false, is_destination:false,
+  });
+  renderRoute();
+  if (stop.latitude && stop.longitude)
+    map.panTo([parseFloat(stop.latitude), parseFloat(stop.longitude)]);
+}
+
+// ─── Search ──────────────────────────────────────────
+const searchInput  = document.getElementById('stop-search');
+const resultsPanel = document.getElementById('stop-results');
+let debounce;
+
+searchInput.addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(doSearch, 220); });
+searchInput.addEventListener('focus', doSearch);
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) resultsPanel.classList.remove('open');
+});
+
+function doSearch() {
+  const q = searchInput.value.trim().toLowerCase();
+  const filtered = q
+    ? ALL_STOPS.filter(s =>
+        s.name.toLowerCase().includes(q) || s.district.toLowerCase().includes(q)
+      ).slice(0,25)
+    : ALL_STOPS.slice(0,25);
+
+  resultsPanel.classList.add('open');
+  if (!filtered.length) {
+    resultsPanel.innerHTML = `<div class="stop-results-empty">No stops found</div>`;
+    return;
+  }
+  resultsPanel.innerHTML = filtered.map(s => `
+    <div class="stop-result-item" data-id="${s.id}">
+      <div class="sri-name">${s.name}</div>
+      <div class="sri-meta">${s.district}${s.landmark?' · '+s.landmark:''}</div>
+    </div>
+  `).join('');
+  resultsPanel.querySelectorAll('.stop-result-item').forEach(el => {
+    el.addEventListener('click', () => {
+      addStop(ALL_STOPS.find(s => s.id===parseInt(el.dataset.id)));
+      resultsPanel.classList.remove('open');
+      searchInput.value = '';
+    });
+  });
+}
+
+// ─── Pin mode ────────────────────────────────────────
+const pinBtn    = document.getElementById('toggle-pin-btn');
+const pinBanner = document.getElementById('pin-banner');
+const mapEl     = document.getElementById('map');
+
+pinBtn.addEventListener('click', () => {
+  pinMode = !pinMode;
+  mapEl.classList.toggle('pin-mode', pinMode);
+  pinBanner.classList.toggle('active', pinMode);
+  pinBtn.innerHTML = pinMode
+    ? '<i class="fa-solid fa-xmark"></i> Cancel'
+    : '<i class="fa-solid fa-map-pin"></i> Pin Mode';
+});
+
+map.on('click', e => {
+  if (!pinMode) return;
+  pinnedLatLng = e.latlng;
+  if (pinnedMarker) map.removeLayer(pinnedMarker);
+  pinnedMarker = L.marker(pinnedLatLng, { icon: pinIcon })
+    .bindTooltip('Pinned — fill details in the form', { permanent:true, direction:'top' })
+    .addTo(map);
+  pinMode = false;
+  mapEl.classList.remove('pin-mode');
+  pinBanner.classList.remove('active');
+  pinBtn.innerHTML = '<i class="fa-solid fa-map-pin"></i> Pin Mode';
+  updateCoords();
+  openModal();
+});
+
+// ─── Modal ───────────────────────────────────────────
+const modal = document.getElementById('new-stop-modal');
+document.getElementById('open-new-stop-btn').addEventListener('click', openModal);
+document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target===modal) closeModal(); });
+
+function openModal() {
+  updateCoords();
+  ['ns-name','ns-district','ns-landmark'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('ns-error').style.display = 'none';
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('ns-name').focus(), 120);
+}
+function closeModal() { modal.classList.remove('open'); }
+
+function updateCoords() {
+  const el = document.getElementById('coords-display');
+  if (pinnedLatLng) {
+    el.innerHTML = `<i class="fa-solid fa-location-crosshairs"></i>
+      ${pinnedLatLng.lat.toFixed(6)}, ${pinnedLatLng.lng.toFixed(6)}`;
+    el.classList.remove('empty');
+  } else {
+    el.innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> No location pinned yet`;
+    el.classList.add('empty');
+  }
+}
+
+document.getElementById('modal-save-btn').addEventListener('click', async () => {
+  const name     = document.getElementById('ns-name').value.trim();
+  const district = document.getElementById('ns-district').value.trim();
+  const landmark = document.getElementById('ns-landmark').value.trim();
+  const errEl    = document.getElementById('ns-error');
+
+  errEl.style.display = 'none';
+  if (!name)     { errEl.textContent='Stop name is required.';  errEl.style.display='block'; return; }
+  if (!district) { errEl.textContent='District is required.';   errEl.style.display='block'; return; }
+
+  const btn = document.getElementById('modal-save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+
+  try {
+    const res = await fetch("{% url 'stop_create_ajax' %}", {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'X-CSRFToken':getCsrf() },
+      body:JSON.stringify({
+        name, district, landmark,
+        latitude:  pinnedLatLng?.lat ?? null,
+        longitude: pinnedLatLng?.lng ?? null,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent=data.error||'Failed to save.'; errEl.style.display='block'; return; }
+
+    ALL_STOPS.push(data);
+    addStop(data);
+    if (pinnedMarker) { map.removeLayer(pinnedMarker); pinnedMarker=null; }
+    pinnedLatLng = null;
+    closeModal();
+    showToast(`"${name}" added to route`);
+  } catch(e) {
+    errEl.textContent = 'Network error. Please try again.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-plus"></i> Save &amp; Add to Route';
+  }
+});
+
+// ─── Form guard ──────────────────────────────────────
+document.getElementById('bus-form').addEventListener('submit', e => {
+  syncInput();
+  if (route.length < 2) {
+    e.preventDefault();
+    showToast('Add at least 2 stops before saving.');
+  }
+});
+
+function clearRoute() {
+  if (route.length && !confirm('Clear all stops from this route?')) return;
+  route = [];
+  renderRoute();
+}
+
+// ─── Utils ───────────────────────────────────────────
+function getCsrf() {
+  return document.cookie.split(';').map(c=>c.trim())
+    .find(c=>c.startsWith('csrftoken='))?.split('=')[1] || '';
+}
+
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.style.opacity='0', 3000);
+}
+
+// ─── Init ────────────────────────────────────────────
+renderRoute();
+</script>
+{% endblock %}
